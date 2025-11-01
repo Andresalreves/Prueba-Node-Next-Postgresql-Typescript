@@ -1,0 +1,37 @@
+// Cliente de Prisma para TypeScript.
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Conexión a la base de datos.
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de datos para el log de interacciones (BroadcastLog)
+model BroadcastLog {
+  // Identificador único y primario de la tabla
+  id                String     @id @default(uuid())
+  
+  // ID del usuario de Meta (ej. Facebook Messenger ID)
+  userId            String
+  
+  // Mensaje recibido del usuario (Inbound Message)
+  inboundMsg        String
+  
+  // Texto generado por el modelo de IA
+  aiGeneratedCopy   String?
+  
+  // URL de la imagen generada por IA
+  aiGeneratedImage  String?
+  
+  // Estado del envío del mensaje de respuesta (PENDING, SENT, FAILED)
+  outboundStatus    String     @default("PENDING")
+  
+  // Marca de tiempo de creación del registro
+  createdAt         DateTime   @default(now())
+  
+  // Marca de tiempo de la última actualización del registro
+  updatedAt         DateTime   @updatedAt
+}
