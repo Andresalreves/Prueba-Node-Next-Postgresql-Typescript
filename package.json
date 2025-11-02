@@ -12,9 +12,11 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@huggingface/inference": "^4.13.0",
     "@prisma/client": "^5.22.0",
     "@prisma/extension-accelerate": "^2.0.2",
     "axios": "^1.7.7",
+    "groq-sdk": "^0.34.0",
     "next": "^14.2.18",
     "openai": "^4.73.0",
     "react": "^18.3.1",

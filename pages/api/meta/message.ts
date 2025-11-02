@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { MetaService } from '@/server/modules/meta/MetaService';
-import { OpenAIService } from '@/server/modules/openai/OpenAIService';
+import { AIService } from '@/server/modules/ai/AIService';
 import { LogService } from '@/server/modules/logs/LogService';
 
 const metaService = new MetaService();
-const openaiService = new OpenAIService();
+const aiService = new AIService();
 const logService = new LogService();
 
 /**
@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Si se solicita generar con IA
       if (generateAI) {
-        finalText = await openaiService.generateCopy(text);
+        finalText = await aiService.generateCopy(text);
       }
 
       // Enviar mensaje a través de Meta

@@ -19,12 +19,19 @@ const AdminDashboard = () => {
   const [imagePrompt, setImagePrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  const [isImageDescription, setIsImageDescription] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   
   // Estados para Broadcast
   const [broadcastUserIds, setBroadcastUserIds] = useState('');
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastWithAI, setBroadcastWithAI] = useState(true);
+  
+  // Estados para selector de proveedor de IA
+  const [aiProvider, setAiProvider] = useState<'groq' | 'openai'>('groq');
+  const [availableProviders, setAvailableProviders] = useState<string[]>([]);
+  const [hasGroq, setHasGroq] = useState(false);
+  const [hasOpenAI, setHasOpenAI] = useState(false);
 
   const fetchLogs = async () => {
     try {
@@ -35,9 +42,39 @@ const AdminDashboard = () => {
     }
   };
 
+  // Obtener proveedor de IA activo
+  const fetchAIProvider = async () => {
+    try {
+      const response = await axios.get('/api/ai/provider');
+      setAiProvider(response.data.current);
+      setAvailableProviders(response.data.available);
+      setHasGroq(response.data.hasGroq);
+      setHasOpenAI(response.data.hasOpenAI);
+    } catch (error) {
+      console.error('Error fetching AI provider:', error);
+    }
+  };
+
+  // Cambiar proveedor de IA
+  const handleChangeProvider = async (provider: 'groq' | 'openai') => {
+    try {
+      setLoading(true);
+      const response = await axios.post('/api/ai/provider', { provider });
+      if (response.data.success) {
+        setAiProvider(provider);
+        alert(`✅ Proveedor cambiado a ${provider.toUpperCase()}`);
+      }
+    } catch (error: any) {
+      alert(`❌ Error: ${error.response?.data?.error || 'No se pudo cambiar el proveedor'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Auto-refresh logs cada 3 segundos
   useEffect(() => {
     fetchLogs();
+    fetchAIProvider();
     
     if (autoRefresh) {
       const interval = setInterval(fetchLogs, 3000);
@@ -80,6 +117,7 @@ const AdminDashboard = () => {
 
     setLoading(true);
     setImageUrl('');
+    setIsImageDescription(false);
     try {
       const response = await axios.post('/api/ai/generate', {
         prompt: imagePrompt,
@@ -87,9 +125,15 @@ const AdminDashboard = () => {
       });
       
       setImageUrl(response.data.image);
-      alert('¡Imagen generada exitosamente!');
+      setIsImageDescription(response.data.isImageDescription || false);
+      
+      if (response.data.isImageDescription) {
+        alert('✅ Descripción de imagen generada (Groq no genera imágenes reales)');
+      } else {
+        alert('✅ Imagen generada exitosamente!');
+      }
     } catch (error: any) {
-      alert('Error: ' + (error.response?.data?.error || 'No se pudo generar imagen'));
+      alert('❌ Error: ' + (error.response?.data?.error || 'No se pudo generar'));
     } finally {
       setLoading(false);
     }
@@ -168,6 +212,39 @@ const AdminDashboard = () => {
           </label>
         </div>
       </header>
+
+      {/* Selector de Proveedor de IA - Minimalista */}
+      <section style={styles.providerSelector}>
+        <div style={styles.providerContent}>
+          <span style={styles.providerLabel}>IA:</span>
+          <div style={styles.providerToggle}>
+            <button
+              onClick={() => handleChangeProvider('groq')}
+              disabled={!hasGroq || aiProvider === 'groq' || loading}
+              style={{
+                ...styles.providerTab,
+                ...(aiProvider === 'groq' ? styles.providerTabActive : {}),
+                ...((!hasGroq || loading) ? styles.providerTabDisabled : {})
+              }}
+              title={!hasGroq ? 'Groq no configurado' : 'Groq - Llama 3.3 70B (Rápido)'}
+            >
+              ⚡ Groq
+            </button>
+            <button
+              onClick={() => handleChangeProvider('openai')}
+              disabled={!hasOpenAI || aiProvider === 'openai' || loading}
+              style={{
+                ...styles.providerTab,
+                ...(aiProvider === 'openai' ? styles.providerTabActive : {}),
+                ...((!hasOpenAI || loading) ? styles.providerTabDisabled : {})
+              }}
+              title={!hasOpenAI ? 'OpenAI no configurado' : 'OpenAI - GPT-5 + DALL-E 3'}
+            >
+              🤖 OpenAI
+            </button>
+          </div>
+        </div>
+      </section>
 
       <div style={styles.grid}>
         {/* Enviar Mensaje a Facebook */}
@@ -248,10 +325,26 @@ const AdminDashboard = () => {
 
             {imageUrl && (
               <div style={styles.imagePreview}>
-                <img src={imageUrl} alt="Generated" style={styles.image} />
-                <a href={imageUrl} target="_blank" rel="noopener noreferrer" style={styles.imageLink}>
-                  🔗 Ver imagen completa
-                </a>
+                {isImageDescription ? (
+                  <div style={styles.imageDescription}>
+                    <div style={styles.imageDescriptionHeader}>
+                      📝 Descripción de imagen generada con IA:
+                    </div>
+                    <p style={styles.imageDescriptionText}>
+                      {imageUrl}
+                    </p>
+                    <p style={styles.imageDescriptionHint}>
+                      💡 Groq genera descripciones detalladas. Para imágenes reales, usa OpenAI (DALL-E 3).
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <img src={imageUrl} alt="Generated" style={styles.image} />
+                    <a href={imageUrl} target="_blank" rel="noopener noreferrer" style={styles.imageLink}>
+                      🔗 Ver imagen completa
+                    </a>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -648,6 +741,87 @@ const styles: { [key: string]: any } = {
   logDate: {
     fontSize: '0.8rem',
     color: '#64748b'
+  },
+  // Estilos para el selector de proveedor de IA - Minimalista
+  providerSelector: {
+    backgroundColor: 'transparent',
+    borderRadius: '8px',
+    padding: '0.75rem 0',
+    marginBottom: '1.5rem',
+    borderBottom: '1px solid #334155'
+  },
+  providerContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem'
+  },
+  providerLabel: {
+    fontSize: '0.9rem',
+    color: '#94a3b8',
+    fontWeight: '500',
+    minWidth: '30px'
+  },
+  providerToggle: {
+    display: 'inline-flex',
+    backgroundColor: '#0f172a',
+    borderRadius: '8px',
+    padding: '0.25rem',
+    border: '1px solid #334155'
+  },
+  providerTab: {
+    padding: '0.5rem 1.25rem',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '6px',
+    color: '#94a3b8',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    whiteSpace: 'nowrap'
+  },
+  providerTabActive: {
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+  },
+  providerTabDisabled: {
+    opacity: 0.4,
+    cursor: 'not-allowed'
+  },
+  // Estilos para descripción de imagen (Groq)
+  imageDescription: {
+    backgroundColor: '#0f172a',
+    border: '2px solid #334155',
+    borderRadius: '12px',
+    padding: '1.5rem',
+    marginTop: '1rem'
+  },
+  imageDescriptionHeader: {
+    fontSize: '0.95rem',
+    fontWeight: '600',
+    color: '#f1f5f9',
+    marginBottom: '1rem',
+    paddingBottom: '0.75rem',
+    borderBottom: '1px solid #334155'
+  },
+  imageDescriptionText: {
+    fontSize: '0.9rem',
+    color: '#cbd5e1',
+    lineHeight: '1.7',
+    margin: '0 0 1rem 0',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word'
+  },
+  imageDescriptionHint: {
+    fontSize: '0.85rem',
+    color: '#64748b',
+    fontStyle: 'italic',
+    margin: 0,
+    padding: '0.75rem',
+    backgroundColor: '#1e293b',
+    borderRadius: '6px',
+    borderLeft: '3px solid #3b82f6'
   }
 };
 

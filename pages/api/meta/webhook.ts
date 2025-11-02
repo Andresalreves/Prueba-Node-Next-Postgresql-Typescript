@@ -1,16 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { OpenAIService } from '@/server/modules/openai/OpenAIService';
+import { AIService } from '@/server/modules/ai/AIService';
 import { MetaService } from '@/server/modules/meta/MetaService';
 import { LogService } from '@/server/modules/logs/LogService';
 
 const metaService = new MetaService();
-const openaiService = new OpenAIService();
+const aiService = new AIService();
 const logService = new LogService();
 
 // Lógica de orquestación centralizada
 const handleInboundMessage = async (req: NextApiRequest, res: NextApiResponse) => {
   const body = req.body;
 
+  print(body.object)
   // Verificar que sea un webhook de página (requerido por Meta)
   if (body.object !== 'page') {
     return res.status(404).send('Not Found');
@@ -44,12 +45,12 @@ const handleInboundMessage = async (req: NextApiRequest, res: NextApiResponse) =
   console.log(`📝 Log creado: ${logId}`);
 
   try {
-    console.log('🤖 Generando respuesta con GPT-5...');
-    const aiCopy = await openaiService.generateCopy(inboundMessage);
+    console.log(`🤖 Generando respuesta con IA (${aiService.getProvider().toUpperCase()})...`);
+    const aiCopy = await aiService.generateCopy(inboundMessage);
     console.log(`✨ IA generó: "${aiCopy}"`);
 
-    // Opcional: Generar Imagen (se puede hacer en paralelo)
-    // const aiImage = await openaiService.generateImage(aiCopy);
+    // Opcional: Analizar imagen si el usuario envió una
+    // const aiImage = await aiService.analyzeImage(imageUrl, "¿Qué hay en esta imagen?");
 
     // Enviar Respuesta Automática (Outbound Message)
     console.log('📤 Enviando respuesta a Facebook...');

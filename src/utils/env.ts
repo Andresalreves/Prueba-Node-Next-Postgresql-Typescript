@@ -12,8 +12,17 @@ function getEnvVar(key: string, fallback?: string): string {
 }
 
 export const env = {
-  // Variables de OpenAI
-  OPENAI_API_KEY: getEnvVar('OPENAI_API_KEY'),
+  // Selector de proveedor de IA: 'groq' o 'openai'
+  AI_PROVIDER: process.env.AI_PROVIDER || 'groq',
+  
+  // Variables de OpenAI (opcional si usas Groq)
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  
+  // Variables de Groq (opcional si usas OpenAI)
+  GROQ_API_KEY: process.env.GROQ_API_KEY || '',
+  
+  // Variables de Hugging Face (para generación de imágenes con Stable Diffusion)
+  HF_TOKEN: process.env.HF_TOKEN || '',
   
   // Variables de Meta (Facebook)
   META_PAGE_TOKEN: getEnvVar('META_PAGE_TOKEN'),

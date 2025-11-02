@@ -7,14 +7,18 @@ export class OpenAIService {
     
   /**
    * Genera una respuesta de texto usando GPT-5
-   * Usa la nueva API de responses.create() para mejor rendimiento
+   * Usa la nueva API de responses.create() según documentación oficial de OpenAI
+   * Separa las instrucciones del input del usuario para mejor rendimiento
    */
   public async generateCopy(userMessage: string): Promise<string> {
     try {
-      // Intentar usar GPT-5 con la nueva API responses.create()
+      // Usar GPT-5 con la nueva API responses.create()
+      // Según la documentación oficial: usar 'instructions' + 'input' + 'reasoning'
       const response = await (openai as any).responses.create({
         model: "gpt-5",
-        input: `Eres un asistente de chatbot para una página de Facebook. Genera una respuesta corta, amigable y que incite a la interacción, basada en el siguiente mensaje del usuario: "${userMessage}"`,
+        reasoning: { effort: "low" }, // Recomendado para GPT-5
+        instructions: "Eres un asistente de chatbot para una página de Facebook. Genera una respuesta corta, amigable y que incite a la interacción.",
+        input: userMessage,
       });
       
       return response.output_text?.trim() ?? "Lo siento, no pude generar una respuesta.";
@@ -39,10 +43,12 @@ export class OpenAIService {
   /**
    * Método directo para usar GPT-5 con máximo control
    * Útil para casos de uso específicos donde se necesita personalización
+   * Usa reasoning effort 'medium' para balance entre velocidad y calidad
    */
-  public async generateWithGPT5(input: string): Promise<string> {
+  public async generateWithGPT5(input: string, effort: 'low' | 'medium' | 'high' = 'medium'): Promise<string> {
     const response = await (openai as any).responses.create({
       model: "gpt-5",
+      reasoning: { effort }, // Control de esfuerzo de razonamiento
       input: input,
     });
     
@@ -52,12 +58,15 @@ export class OpenAIService {
   /**
    * Genera respuestas más largas y detalladas con GPT-5
    * Ideal para contenido de marketing o descripciones extensas
+   * Usa 'medium' effort para mejor calidad en respuestas complejas
    */
   public async generateDetailedCopy(userMessage: string): Promise<string> {
     try {
       const response = await (openai as any).responses.create({
         model: "gpt-5",
-        input: `Como experto en marketing conversacional y copywriting, crea una respuesta detallada, persuasiva y amigable para el siguiente mensaje de un usuario en Facebook Messenger: "${userMessage}". La respuesta debe ser profesional pero cercana, incentivar la interacción y ofrecer valor.`,
+        reasoning: { effort: "medium" }, // Mayor esfuerzo para respuestas detalladas
+        instructions: "Eres un experto en marketing conversacional y copywriting. La respuesta debe ser profesional pero cercana, incentivar la interacción y ofrecer valor.",
+        input: `Crea una respuesta detallada, persuasiva y amigable para el siguiente mensaje de un usuario en Facebook Messenger: "${userMessage}"`,
       });
       
       return response.output_text?.trim() ?? "Lo siento, no pude generar una respuesta.";
