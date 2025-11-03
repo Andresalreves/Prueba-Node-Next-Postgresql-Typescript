@@ -2,6 +2,42 @@
 
 **Sistema completo de chatbot con múltiples proveedores de IA**
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
+[![Meta](https://img.shields.io/badge/Meta-0668E1?style=for-the-badge&logo=meta&logoColor=white)](https://developers.facebook.com/)
+
+## 📸 Previews
+
+### Dashboard Administrativo
+![Dashboard Preview](Previews/preview1.png)
+*Panel principal con logs de conversaciones, estadísticas y controles de administración*
+
+### Panel de Generación de Contenido con IA
+![AI Generator Preview](Previews/preview2.png)
+*Interfaz para probar generación de texto e imágenes con diferentes proveedores de IA*
+
+---
+
+## 📑 Tabla de Contenidos
+
+- [Previews](#-previews)
+- [Características Principales](#-características-principales)
+- [Requisitos Previos](#-requisitos-previos)
+- [Instalación y Configuración](#-instalación-y-configuración)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Flujo Funcional](#-flujo-funcional)
+- [Endpoints API](#-endpoints-api)
+- [Testing](#-testing)
+- [Scripts Disponibles](#️-scripts-disponibles)
+- [Notas Técnicas](#-notas-técnicas)
+- [Troubleshooting](#-troubleshooting)
+- [Características Destacadas](#-características-destacadas)
+
+---
+
 ## ⭐ Características Principales
 
 ### 🎯 Selector de Proveedor de IA
