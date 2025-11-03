@@ -595,7 +595,6 @@ Verificar que `OPENAI_API_KEY` sea válida y tenga créditos disponibles:
 
 ## 📚 Documentación Adicional
 
-- **`FACEBOOK_WEBHOOK_CHECKLIST.md`**: Guía completa de implementación de webhooks según Facebook
 - **Scripts en `scripts/`**: Herramientas de testing y verificación
 - **`.env.example`**: Plantilla con todas las variables de entorno necesarias
 
@@ -613,7 +612,6 @@ Verificar que `OPENAI_API_KEY` sea válida y tenga créditos disponibles:
 ## 💬 Contacto y Soporte
 
 Para más información sobre la configuración:
-- Revisa `FACEBOOK_WEBHOOK_CHECKLIST.md` para webhooks
 - Ejecuta `node scripts/check-config.js` para diagnóstico
 - Ejecuta `./scripts/test-webhook.sh` para testing
 
