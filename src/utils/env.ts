@@ -27,6 +27,7 @@ export const env = {
   // Variables de Meta (Facebook)
   META_PAGE_TOKEN: getEnvVar('META_PAGE_TOKEN'),
   META_VERIFY_TOKEN: getEnvVar('META_VERIFY_TOKEN'),
+  META_APP_SECRET: process.env.META_APP_SECRET || '', // Para validar firma de webhooks
   
   // Base de datos
   DATABASE_URL: getEnvVar('DATABASE_URL'),

@@ -11,8 +11,19 @@ const logService = new LogService();
 const handleInboundMessage = async (req: NextApiRequest, res: NextApiResponse) => {
   const body = req.body;
 
-  print(body.object)
-  // Verificar que sea un webhook de página (requerido por Meta)
+  console.log('📦 Body object:', body.object);
+  
+  // 1️⃣ Validar firma X-Hub-Signature-256 (Recomendado por Facebook)
+  const signature = req.headers['x-hub-signature-256'] as string | undefined;
+  const rawBody = JSON.stringify(body);
+  
+  const isValidSignature = metaService.verifyRequestSignature(signature, rawBody);
+  if (!isValidSignature && process.env.META_APP_SECRET) {
+    console.error('❌ [WEBHOOK] Firma inválida - rechazando webhook');
+    return res.status(403).send('Forbidden');
+  }
+
+  // 2️⃣ Verificar que sea un webhook de página (requerido por Meta)
   if (body.object !== 'page') {
     return res.status(404).send('Not Found');
   }
@@ -30,10 +41,12 @@ const handleInboundMessage = async (req: NextApiRequest, res: NextApiResponse) =
 
   const userId = messagingEvent.sender.id;
   const inboundMessage = messagingEvent.message.text;
+  const timestamp = messagingEvent.timestamp; // Para orden cronológico
 
   console.log('\n🔔 ===== NUEVO MENSAJE RECIBIDO =====');
   console.log(`👤 Usuario: ${userId}`);
   console.log(`💬 Mensaje: "${inboundMessage}"`);
+  console.log(`⏰ Timestamp: ${new Date(timestamp).toISOString()}`);
 
   // Si no hay texto (puede ser imagen, sticker, etc), responder y salir
   if (!inboundMessage) {
@@ -41,6 +54,11 @@ const handleInboundMessage = async (req: NextApiRequest, res: NextApiResponse) =
     return res.status(200).send('EVENT_RECEIVED');
   }
 
+  // 3️⃣ Responder inmediatamente con 200 OK (Facebook requiere respuesta en <5 segundos)
+  res.status(200).send('EVENT_RECEIVED');
+  console.log('✅ Respuesta 200 OK enviada a Facebook');
+
+  // 4️⃣ Procesar mensaje de forma asíncrona (después de enviar 200 OK)
   const logId = await logService.createLog(userId, inboundMessage);
   console.log(`📝 Log creado: ${logId}`);
 
@@ -67,14 +85,10 @@ const handleInboundMessage = async (req: NextApiRequest, res: NextApiResponse) =
     console.log('📊 Log actualizado en la base de datos');
     console.log('===== FIN DEL PROCESO =====\n');
 
-    // Responder con EVENT_RECEIVED como requiere Meta
-    return res.status(200).send('EVENT_RECEIVED');
-
   } catch (error) {
     console.error('❌ Error en el flujo del chatbot:', error);
     await logService.updateLogStatus(logId, "FAILED", "Error interno");
-    // Siempre responder 200 para que Meta no reintente
-    return res.status(200).send('EVENT_RECEIVED');
+    console.log('⚠️ Error procesado - ya se envió 200 OK previamente');
   }
 };
 
